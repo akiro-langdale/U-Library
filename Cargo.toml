@@ -1,5 +1,12 @@
 [workspace]
-members = ["crates/u-library-core", "crates/u-library-memory", "crates/u-library-ffi"]
+members = [
+    "crates/u-library-core",
+    "crates/u-library-memory",
+    "crates/u-library-registers",
+    "crates/u-library-cache",
+    "crates/u-library-gpu",
+    "crates/u-library-ffi",
+]
 resolver = "2"
 
 [workspace.package]

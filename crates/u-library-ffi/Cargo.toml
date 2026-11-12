@@ -10,3 +10,6 @@ crate-type = ["cdylib"]
 [dependencies]
 u-library-core = { path = "../u-library-core" }
 u-library-memory = { path = "../u-library-memory" }
+u-library-registers = { path = "../u-library-registers" }
+u-library-cache = { path = "../u-library-cache" }
+u-library-gpu = { path = "../u-library-gpu" }

@@ -1,0 +1,16 @@
+[package]
+name = "u-library-registers"
+version.workspace = true
+edition.workspace = true
+
+[dependencies]
+
+[target.'cfg(windows)'.dependencies]
+windows = { version = "0.61", features = [
+    "Win32_System_Diagnostics_Debug",
+    "Win32_System_Kernel",
+    "Win32_System_Threading",
+] }
+
+[target.'cfg(target_os = "linux")'.dependencies]
+libc = "0.2"

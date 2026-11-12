@@ -1,0 +1,9 @@
+[package]
+name = "u-library-gpu"
+version.workspace = true
+edition.workspace = true
+
+[dependencies]
+
+[target.'cfg(windows)'.dependencies]
+windows = { version = "0.61", features = ["Win32_Graphics_Dxgi"] }

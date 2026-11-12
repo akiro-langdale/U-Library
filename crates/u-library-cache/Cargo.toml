@@ -1,0 +1,12 @@
+[package]
+name = "u-library-cache"
+version.workspace = true
+edition.workspace = true
+
+[dependencies]
+
+[target.'cfg(windows)'.dependencies]
+windows = { version = "0.61", features = ["Win32_System_SystemInformation"] }
+
+[target.'cfg(target_os = "linux")'.dependencies]
+libc = "0.2"

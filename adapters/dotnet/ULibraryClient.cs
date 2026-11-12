@@ -33,8 +33,27 @@ namespace ULibrary
             public uint Reserved;
         }
 
+        [StructLayout(LayoutKind.Sequential)]
+        public struct ByteDiff
+        {
+            public ulong Address;
+            public byte Before;
+            public byte After;
+            public byte Reserved0;
+            public byte Reserved1;
+            public byte Reserved2;
+            public byte Reserved3;
+            public byte Reserved4;
+            public byte Reserved5;
+        }
+
         [DllImport(Library, CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
         private static extern uint ul_abi_version();
+
+        [DllImport(Library, CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        private static extern int ul_bytes_compare(ulong baseAddress,
+            byte[] before, UIntPtr beforeLen, byte[] after, UIntPtr afterLen,
+            [Out] ByteDiff[] diffs, UIntPtr capacity, out UIntPtr count);
 
         [DllImport(Library, CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
         private static extern int ul_file_open(byte[] path, UIntPtr length, out IntPtr handle);
@@ -72,6 +91,34 @@ namespace ULibrary
                 try { return ul_process_abi_version(); }
                 catch (EntryPointNotFoundException) { return 0; }
             }
+        }
+
+        public static ByteDiff[] CompareBytes(ulong baseAddress, byte[] before, byte[] after)
+        {
+            if (before == null || after == null)
+                throw new ArgumentNullException(before == null ? "before" : "after");
+            if (before.Length != after.Length)
+                throw new ArgumentException("Buffers must have equal length.");
+            if (before.Length > MaxFileRead)
+                throw new ArgumentOutOfRangeException("before");
+            RequireAbi();
+            ByteDiff[] diffs = new ByteDiff[0];
+            for (int attempt = 0; attempt < 2; ++attempt)
+            {
+                UIntPtr count;
+                int status = ul_bytes_compare(baseAddress, before, Size(before.Length),
+                    after, Size(after.Length), diffs.Length == 0 ? null : diffs,
+                    Size(diffs.Length), out count);
+                if (status == BufferTooSmall)
+                {
+                    diffs = new ByteDiff[checked((int)count.ToUInt64())];
+                    continue;
+                }
+                Check(status, "ul_bytes_compare");
+                Array.Resize(ref diffs, checked((int)count.ToUInt64()));
+                return diffs;
+            }
+            throw new NativeException("ul_bytes_compare", BufferTooSmall);
         }
 
         public static byte[] ReadFile(string path, ulong offset, int length)

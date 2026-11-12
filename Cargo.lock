@@ -3,6 +3,21 @@
 version = 4
 
 [[package]]
+name = "libc"
+version = "0.2.191"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "65cd87c9a6d60536580b316ad985726104730a5151c99845f2490428ef91240a"
+
+[[package]]
+name = "mach2"
+version = "0.4.3"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "d640282b302c0bb0a2a8e0233ead9035e3bed871f0b7e81fe4a1ec829765db44"
+dependencies = [
+ "libc",
+]
+
+[[package]]
 name = "proc-macro2"
 version = "1.0.107"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -32,6 +47,14 @@ dependencies = [
 ]
 
 [[package]]
+name = "u-library-cache"
+version = "0.1.0"
+dependencies = [
+ "libc",
+ "windows",
+]
+
+[[package]]
 name = "u-library-core"
 version = "0.1.0"
 
@@ -39,15 +62,34 @@ version = "0.1.0"
 name = "u-library-ffi"
 version = "0.1.0"
 dependencies = [
+ "u-library-cache",
  "u-library-core",
+ "u-library-gpu",
  "u-library-memory",
+ "u-library-registers",
+]
+
+[[package]]
+name = "u-library-gpu"
+version = "0.1.0"
+dependencies = [
+ "windows",
 ]
 
 [[package]]
 name = "u-library-memory"
 version = "0.1.0"
 dependencies = [
+ "mach2",
  "u-library-core",
+ "windows",
+]
+
+[[package]]
+name = "u-library-registers"
+version = "0.1.0"
+dependencies = [
+ "libc",
  "windows",
 ]
 

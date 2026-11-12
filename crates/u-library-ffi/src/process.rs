@@ -1,31 +1,28 @@
 //! C ABI for process virtual memory.
 
 use super::INVALID_ARGUMENT;
-#[cfg(windows)]
-use super::{INTERNAL_ERROR, OK};
-#[cfg(windows)]
-use std::panic::catch_unwind;
 use std::ptr;
 
-#[cfg(not(windows))]
-use super::UNSUPPORTED_SOURCE;
-#[cfg(windows)]
-use super::{INVALID_RANGE, IO_ERROR};
-#[cfg(windows)]
+#[cfg(any(windows, target_os = "linux", target_os = "macos"))]
+use super::{BUFFER_TOO_SMALL, INTERNAL_ERROR, INVALID_RANGE, IO_ERROR, OK};
+#[cfg(any(windows, target_os = "linux", target_os = "macos"))]
+use std::panic::catch_unwind;
+#[cfg(any(windows, target_os = "linux", target_os = "macos"))]
 use u_library_memory::process_memory::{
     MemoryRegionKind, MemoryState, ProcessMemory, ProcessMemoryError, VirtualMemoryRegion,
     MAX_MEMORY_SAMPLE_BYTES,
 };
 
-#[cfg(windows)]
-const BUFFER_TOO_SMALL: i32 = 6;
-#[cfg(windows)]
+#[cfg(not(any(windows, target_os = "linux", target_os = "macos")))]
+use super::UNSUPPORTED_SOURCE;
+
+#[cfg(any(windows, target_os = "linux", target_os = "macos"))]
 const PERMISSION_REQUIRED: i32 = 7;
-#[cfg(windows)]
+#[cfg(any(windows, target_os = "linux", target_os = "macos"))]
 const UNAVAILABLE: i32 = 8;
 
 pub struct ProcessHandle {
-    #[cfg(windows)]
+    #[cfg(any(windows, target_os = "linux", target_os = "macos"))]
     process: ProcessMemory,
 }
 
@@ -39,7 +36,7 @@ pub struct ProcessRegion {
     reserved: u32,
 }
 
-#[cfg(windows)]
+#[cfg(any(windows, target_os = "linux", target_os = "macos"))]
 impl From<VirtualMemoryRegion> for ProcessRegion {
     fn from(region: VirtualMemoryRegion) -> Self {
         let state = match region.state {
@@ -72,7 +69,7 @@ impl From<VirtualMemoryRegion> for ProcessRegion {
     }
 }
 
-#[cfg(windows)]
+#[cfg(any(windows, target_os = "linux", target_os = "macos"))]
 fn status(error: ProcessMemoryError) -> i32 {
     match error {
         ProcessMemoryError::InvalidRange(_) => INVALID_RANGE,
@@ -84,7 +81,7 @@ fn status(error: ProcessMemoryError) -> i32 {
 
 #[no_mangle]
 pub extern "C" fn ul_process_abi_version() -> u32 {
-    u32::from(cfg!(windows))
+    u32::from(cfg!(any(windows, target_os = "linux", target_os = "macos")))
 }
 
 /// # Safety
@@ -95,7 +92,7 @@ pub unsafe extern "C" fn ul_process_open(pid: u64, out: *mut *mut ProcessHandle)
         return INVALID_ARGUMENT;
     }
     unsafe { out.write(ptr::null_mut()) };
-    #[cfg(windows)]
+    #[cfg(any(windows, target_os = "linux", target_os = "macos"))]
     {
         catch_unwind(|| match ProcessMemory::open(pid) {
             Ok(process) => {
@@ -106,7 +103,7 @@ pub unsafe extern "C" fn ul_process_open(pid: u64, out: *mut *mut ProcessHandle)
         })
         .unwrap_or(INTERNAL_ERROR)
     }
-    #[cfg(not(windows))]
+    #[cfg(not(any(windows, target_os = "linux", target_os = "macos")))]
     {
         let _ = pid;
         UNSUPPORTED_SOURCE
@@ -129,7 +126,7 @@ pub unsafe extern "C" fn ul_process_regions(
     if handle.is_null() || (capacity != 0 && buffer.is_null()) {
         return INVALID_ARGUMENT;
     }
-    #[cfg(windows)]
+    #[cfg(any(windows, target_os = "linux", target_os = "macos"))]
     {
         if capacity > isize::MAX as usize / std::mem::size_of::<ProcessRegion>() {
             return INVALID_RANGE;
@@ -149,7 +146,7 @@ pub unsafe extern "C" fn ul_process_regions(
         })
         .unwrap_or(INTERNAL_ERROR)
     }
-    #[cfg(not(windows))]
+    #[cfg(not(any(windows, target_os = "linux", target_os = "macos")))]
     UNSUPPORTED_SOURCE
 }
 
@@ -170,7 +167,7 @@ pub unsafe extern "C" fn ul_process_read_at(
     if handle.is_null() || buffer.is_null() {
         return INVALID_ARGUMENT;
     }
-    #[cfg(windows)]
+    #[cfg(any(windows, target_os = "linux", target_os = "macos"))]
     {
         if !(1..=MAX_MEMORY_SAMPLE_BYTES).contains(&capacity) {
             return INVALID_RANGE;
@@ -189,7 +186,7 @@ pub unsafe extern "C" fn ul_process_read_at(
         )
         .unwrap_or(INTERNAL_ERROR)
     }
-    #[cfg(not(windows))]
+    #[cfg(not(any(windows, target_os = "linux", target_os = "macos")))]
     {
         let _ = (address, capacity);
         UNSUPPORTED_SOURCE
