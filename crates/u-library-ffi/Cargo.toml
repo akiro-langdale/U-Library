@@ -1,0 +1,12 @@
+[package]
+name = "u-library-ffi"
+edition.workspace = true
+version.workspace = true
+
+[lib]
+name = "u_library"
+crate-type = ["cdylib"]
+
+[dependencies]
+u-library-core = { path = "../u-library-core" }
+u-library-memory = { path = "../u-library-memory" }

@@ -1,0 +1,4 @@
+[package]
+name = "u-library-core"
+version.workspace = true
+edition.workspace = true
